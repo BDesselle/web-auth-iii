@@ -1,6 +1,3 @@
-const bcrypt = require("bcryptjs");
-const db = require("../routes/users/usersModel");
-
 module.exports = function restricted(req, res, next) {
   try {
     req.session && req.session.user

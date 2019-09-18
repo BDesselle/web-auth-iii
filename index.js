@@ -3,6 +3,8 @@ const helmet = require("helmet");
 const cors = require("cors");
 const morgan = require("morgan");
 const session = require("express-session");
+const knexSessionStore = require("connect-session-knex")(session);
+const db = require("./data/dbConfig");
 const authRouter = require("./auth/authRouter");
 const app = express();
 
@@ -10,14 +12,21 @@ const PORT = process.env.PORT || 4000;
 
 const sessionConfig = {
   name: "oatmealRaisin",
-  secret: process.env.SECRET || "secret",
+  secret: process.env.SESSION_SECRET || "secret",
   cookie: {
-    maxAge: 1000 * 30,
+    maxAge: 1000 * 60 * 60,
     secure: false, // true in production
     httpOnly: true
   },
   resave: false,
-  saveUninitialized: false // GDPR Laws against setting cookies automatically
+  saveUninitialized: true, // GDPR Laws against setting cookies automatically
+  store: new knexSessionStore({
+    knex: db,
+    tablename: "knexsessions",
+    sidfieldname: "sessionid",
+    createtable: true,
+    clearInterval: 1000 * 60 * 30
+  })
 };
 
 //* Global Middleware

@@ -8,10 +8,11 @@ const app = express.Router();
 app.post("/register", (req, res) => {
   try {
     let { username, password } = req.body;
-    let hash = bcrypt.hashSync(password, 10);
-    db.add({ username, password: hash }).then(response => {
-      res.status(201).json(response);
-    });
+    db.add({ username, password: bcrypt.hashSync(password, 12) }).then(
+      response => {
+        res.status(201).json(response);
+      }
+    );
   } catch (err) {
     res.status(500).json(err);
   }
@@ -24,7 +25,7 @@ app.post("/login", (req, res) => {
     db.findBy({ username })
       .first()
       .then(response => {
-        bcrypt.compareSync(password, response.password)
+        response && bcrypt.compareSync(password, response.password)
           ? ((req.session.user = response),
             res.status(200).json({ message: `Welcome ${response.username}!` }))
           : res.status(401).json({ message: "Invalid Credentials" });
