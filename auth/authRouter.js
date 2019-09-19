@@ -1,6 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const db = require("../routes/users/usersModel");
+const generateToken = require("./generateToken");
 const restricted = require("./restrictedMiddleware");
 const app = express.Router();
 
@@ -26,26 +27,15 @@ app.post("/login", (req, res) => {
       .first()
       .then(response => {
         response && bcrypt.compareSync(password, response.password)
-          ? ((req.session.user = response),
-            res.status(200).json({ message: `Welcome ${response.username}!` }))
+          ? ((token = generateToken(response)),
+            res
+              .status(200)
+              .json({ message: `Welcome ${response.username}!`, token }))
           : res.status(401).json({ message: "Invalid Credentials" });
       });
   } catch (err) {
     res.status(500).json(err);
   }
-});
-
-//* Logout of account
-app.get("/logout", (req, res) => {
-  req.session
-    ? req.session.destroy(err => {
-        err
-          ? res.json({ message: "You can check out, but you can never leave." })
-          : res.status(200).json({
-              message: "You have successfully left Hotel California."
-            });
-      })
-    : res.status(200).json({ message: "You were never really here." });
 });
 
 //* Get all users
